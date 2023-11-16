@@ -1,60 +1,59 @@
 package com.example.colortilesviewsk
 
-import android.R.attr.x
-import android.R.attr.y
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.colortilesviewsk.databinding.ActivityMainBinding
+import kotlin.random.Random
 
 
-// тип для координат
-data class Coord(val x: Int, val y: Int)
 class MainActivity : AppCompatActivity() {
 
-    lateinit var tiles: Array<Array<View>>
+    private val cells: MutableList<MutableList<Cell>> = mutableListOf()
+
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        tiles[0][0] = findViewById(R.id.t00) // TODO: заполнить массив для всех тайлов
-        // еще 15 строк тут, id у плиток нужно по образцу внести в разметку
-    }
-
-    fun getCoordFromString(s: String): Coord {
-        // TODO: реализовать функцию, получающую из
-        // строки вида "12" координаты Coord(1,2)
-        // TODO: сообщать в лог координаты
-        return Coord(0,0) // вернуть полученные координаты
-    }
-    fun changeColor(view: View) {
-        val brightColor = resources.getColor(R.color.bright)
-        val darkColor = resources.getColor(R.color.dark)
-        val drawable = view.background as ColorDrawable
-        if (drawable.color ==brightColor ) {
-            view.setBackgroundColor(darkColor)
-        } else {
-            view.setBackgroundColor(brightColor)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        fillCells()
+        updateCellField()
+        binding.cellGameView.onCellClick = {
+            onCellClick(it)
         }
     }
 
-    fun onClick(v: View) {
-        val coord = getCoordFromString(v.getTag().toString())
-        changeColor(v)
-
-        for (i in 0..3) {
-            changeColor(tiles[coord.x][i])
-            changeColor(tiles[i][coord.y])
+    private fun fillCells() {
+        for (j in 0 until 4) {
+            val list = mutableListOf<Cell>()
+            for (i in 0 until 4) {
+                list.add(Cell(Random.nextBoolean(), i, j))
+            }
+            cells.add(list)
         }
     }
 
-    fun checkVictory() {
-        // TODO: проверка победы
+    private fun checkVictory() {
+        if (cells.all { it.all { cell -> cell.isActive } } || cells.all { it.all { cell -> !cell.isActive } }) {
+            Toast.makeText(this, "Victory", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    fun initField() {
-        // TODO: заполнение поля случайными плитками (тёмный/светлый)
+    private fun onCellClick(cell: Cell) {
+        for (j in 0 until 4) {
+            for (i in 0 until 4) {
+                if (j == cell.y || i == cell.x) {
+                    cells[j][i] = cells[j][i].copy(isActive = cells[j][i].isActive.not())
+                }
+            }
+        }
+        updateCellField()
+        checkVictory()
     }
 
-
+    private fun updateCellField() {
+        binding.cellGameView.items = cells
+    }
 }

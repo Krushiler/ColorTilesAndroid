@@ -7,6 +7,10 @@ android {
     namespace = "com.example.colortilesviewsk"
     compileSdk = 34
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     defaultConfig {
         applicationId = "com.example.colortilesviewsk"
         minSdk = 24
